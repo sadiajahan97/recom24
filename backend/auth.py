@@ -1,4 +1,5 @@
 import os
+import asyncio
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -10,6 +11,7 @@ from pydantic import BaseModel, EmailStr
 from prisma import Prisma
 
 from db import get_db
+from recommendations import schedule_recommendations_for_user
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -45,6 +47,7 @@ class SignUpRequest(BaseModel):
     email: EmailStr
     password: str
     name: str
+    profession: str
 
 
 class SignInRequest(BaseModel):
@@ -103,13 +106,12 @@ async def sign_up(body: SignUpRequest, db: Prisma = Depends(get_db)):
             "email": body.email,
             "hashedPassword": hashed,
             "name": body.name,
+            "profession": body.profession,
         }
     )
+    asyncio.create_task(schedule_recommendations_for_user(user.id, db, query="python"))
     token = create_access_token(user.id)
-    return AuthResponse(
-        user=user_to_response(user),
-        access_token=token,
-    )
+    return AuthResponse(user=user_to_response(user), access_token=token)
 
 
 @router.post("/sign-in", response_model=AuthResponse)
