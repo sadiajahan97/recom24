@@ -1,6 +1,6 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import { FileText, GraduationCap, PlayCircle, ThumbsUp } from 'lucide-react';
+import Image from "next/image";
+import Link from "next/link";
+import { FileText, GraduationCap, PlayCircle, ThumbsUp } from "lucide-react";
 
 export default function WelcomeScreen() {
   return (
@@ -32,7 +32,8 @@ export default function WelcomeScreen() {
               Master your skills with tailored content
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed">
-              Personalized corporate learning recommendations delivered straight to you.
+              Personalized corporate learning recommendations delivered straight
+              to you.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4">
@@ -41,8 +42,12 @@ export default function WelcomeScreen() {
                 <FileText className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-900 dark:text-white">Curated Articles</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Industry insights daily</p>
+                <h3 className="font-bold text-slate-900 dark:text-white">
+                  Curated Articles
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Industry insights daily
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/60 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50 shadow-sm backdrop-blur-sm">
@@ -50,8 +55,12 @@ export default function WelcomeScreen() {
                 <GraduationCap className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-900 dark:text-white">Expert Courses</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Deep dive learning modules</p>
+                <h3 className="font-bold text-slate-900 dark:text-white">
+                  Expert Courses
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Deep dive learning modules
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/60 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50 shadow-sm backdrop-blur-sm">
@@ -59,17 +68,27 @@ export default function WelcomeScreen() {
                 <PlayCircle className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-900 dark:text-white">Engaging Videos</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Visual learning on demand</p>
+                <h3 className="font-bold text-slate-900 dark:text-white">
+                  Engaging Videos
+                </h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  Visual learning on demand
+                </p>
               </div>
             </div>
           </div>
         </div>
-        <div className="mt-auto flex flex-col gap-3 pb-8">
-          <Link href="/signup" className="flex w-full items-center justify-center rounded-xl bg-primary px-6 py-4 text-base font-bold text-white shadow-lg shadow-blue-500/25 transition-all hover:bg-primary-dark active:scale-[0.98]">
+        <div className="mt-auto flex flex-col gap-4 pb-8">
+          <Link
+            href="/sign-up/step-1"
+            className="flex w-full items-center justify-center rounded-xl bg-primary px-6 py-4 text-base font-bold text-white shadow-lg shadow-blue-500/25 transition-all hover:bg-primary-dark active:scale-[0.98]"
+          >
             Sign Up
           </Link>
-          <Link href="/login" className="flex w-full items-center justify-center rounded-xl bg-white dark:bg-slate-800 px-6 py-4 text-base font-bold text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-[0.98]">
+          <Link
+            href="/sign-in"
+            className="flex w-full items-center justify-center rounded-xl bg-primary px-6 py-4 text-base font-bold text-white shadow-lg shadow-blue-500/25 transition-all hover:bg-primary-dark active:scale-[0.98]"
+          >
             Sign In
           </Link>
           <p className="mt-4 text-center text-xs text-slate-400 dark:text-slate-500">
