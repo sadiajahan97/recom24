@@ -3,9 +3,58 @@
 import Link from "next/link";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!email || !password) {
+      setError("Please enter your email and password.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const baseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+
+      const res = await fetch(`${baseUrl}/auth/sign-in`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const message =
+          (data && (data.detail || data.message)) ||
+          "Failed to sign in. Please check your credentials.";
+        throw new Error(message);
+      }
+
+      const data = await res.json();
+      if (data?.access_token && typeof window !== "undefined") {
+        localStorage.setItem("access_token", data.access_token);
+      }
+
+      router.push("/alerts");
+    } catch (err: any) {
+      setError(err?.message ?? "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="relative flex min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-x-hidden max-w-md mx-auto">
@@ -30,7 +79,10 @@ export default function LoginScreen() {
       </div>
 
       {/* Form Section */}
-      <form className="flex flex-col gap-4 px-6 py-4 mt-4 flex-grow">
+      <form
+        className="flex flex-col gap-4 px-6 py-4 mt-4 flex-grow"
+        onSubmit={handleSubmit}
+      >
         {/* Email Input */}
         <div className="flex flex-col w-full">
           <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold mb-2">
@@ -40,6 +92,8 @@ export default function LoginScreen() {
             className="form-input flex w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-slate-100 focus:border-primary focus:ring-1 focus:ring-primary h-14 px-4 text-base placeholder:text-slate-400 dark:placeholder:text-slate-600 transition-all outline-none"
             placeholder="Enter your email"
             type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
 
@@ -55,6 +109,8 @@ export default function LoginScreen() {
               className="form-input flex w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 text-slate-900 dark:text-slate-100 focus:border-primary focus:ring-1 focus:ring-primary h-14 px-4 text-base placeholder:text-slate-400 dark:placeholder:text-slate-600 transition-all outline-none"
               type={showPassword ? "text" : "password"}
               placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
             <button
               className="absolute right-0 h-14 px-4 flex items-center justify-center text-slate-400 hover:cursor-pointer hover:text-primary transition-colors"
@@ -78,14 +134,21 @@ export default function LoginScreen() {
           </div>
         </div>
 
+        {error && (
+          <p className="text-sm text-red-500 mt-2" role="alert">
+            {error}
+          </p>
+        )}
+
         {/* Action Button */}
         <div className="mt-6">
-          <Link
-            href="/alerts"
-            className="w-full bg-primary hover:bg-primary/90 text-white font-bold h-14 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center transition-all active:scale-[0.98]"
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-primary hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold h-14 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center transition-all active:scale-[0.98]"
           >
-            Sign In
-          </Link>
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
         </div>
       </form>
 
