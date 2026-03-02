@@ -7,6 +7,7 @@ load_dotenv()
 from prisma import Prisma
 
 from auth import router as auth_router
+from recommendations import router as recommendations_router
 from db import set_db
 
 prisma = Prisma()
@@ -28,6 +29,7 @@ app = FastAPI(
 )
 
 app.include_router(auth_router)
+app.include_router(recommendations_router)
 
 
 @app.get("/")

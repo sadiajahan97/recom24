@@ -1,8 +1,9 @@
 import os
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
-from jose import jwt
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
 
@@ -15,8 +16,29 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 JWT_SECRET = os.getenv("JWT_SECRET", "change-me-in-production")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_MINUTES = 60 * 24 * 7
+security = HTTPBearer()
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+async def verify_access_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> str:
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token",
+            )
+        return user_id
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+        )
 
 
 class SignUpRequest(BaseModel):

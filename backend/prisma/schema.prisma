@@ -8,12 +8,28 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  email          String   @unique
-  hashedPassword String   @map("hashed_password")
-  name           String
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id              String           @id @default(uuid())
+  email           String           @unique
+  hashedPassword  String           @map("hashed_password")
+  name            String
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  recommendations Recommendation[]
 
   @@map("users")
+}
+
+model Recommendation {
+  id          String   @id @default(uuid())
+  description String
+  image       String?
+  link        String
+  title       String
+  type        String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@map("recommendations")
 }
