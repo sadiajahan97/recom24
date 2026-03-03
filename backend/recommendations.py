@@ -16,10 +16,18 @@ from pydantic import BaseModel
 router = APIRouter(prefix="/recommendations", tags=["recommendations"])
 
 
+class RecommendationItem(BaseModel):
+    id: str
+    description: str
+    isComplete: bool
+    link: str
+    title: str
+    type: str
+    createdAt: datetime
+
+
 class RecommendationResponse(BaseModel):
-    articles: List[Article]
-    courses: List[Course]
-    videos: List[Video]
+    items: List[RecommendationItem]
 
 
 async def process_recommendations(
@@ -54,6 +62,7 @@ async def process_recommendations(
             "id": item_id,
             "description": description,
             "image": image or "",
+            "isComplete": False,
             "link": link,
             "title": title,
             "type": category,
@@ -71,7 +80,7 @@ async def process_recommendations(
 
 async def generate_and_store_recommendations_for_user(
     user_id: str, query: str, db: Prisma
-) -> RecommendationResponse:
+) -> None:
     articles_task = asyncio.to_thread(generate_articles_from_query, query)
     courses_task = asyncio.to_thread(generate_courses_from_query, query)
     videos_task = asyncio.to_thread(generate_videos_from_query, query)
@@ -84,12 +93,6 @@ async def generate_and_store_recommendations_for_user(
         process_recommendations(articles, "article", user_id, db),
         process_recommendations(courses, "course", user_id, db),
         process_recommendations(videos, "video", user_id, db),
-    )
-
-    return RecommendationResponse(
-        articles=articles,
-        courses=courses,
-        videos=videos,
     )
 
 
@@ -115,40 +118,17 @@ async def get_recommendations(
         order={"createdAt": "desc"},
     )
 
-    articles: List[Article] = []
-    courses: List[Course] = []
-    videos: List[Video] = []
+    items = [
+        RecommendationItem(
+            id=rec.id,
+            description=rec.description,
+            isComplete=rec.isComplete,
+            link=rec.link,
+            title=rec.title,
+            type=rec.type,
+            createdAt=rec.createdAt,
+        )
+        for rec in records
+    ]
 
-    for rec in records:
-        if rec.type == "article":
-            articles.append(
-                Article(
-                    title=rec.title,
-                    description=rec.description,
-                    image=rec.image or "",
-                    link=rec.link,
-                )
-            )
-        elif rec.type == "course":
-            courses.append(
-                Course(
-                    title=rec.title,
-                    description=rec.description,
-                    image=rec.image or "",
-                    link=rec.link,
-                )
-            )
-        elif rec.type == "video":
-            videos.append(
-                Video(
-                    title=rec.title,
-                    description=rec.description,
-                    link=rec.link,
-                )
-            )
-
-    return RecommendationResponse(
-        articles=articles,
-        courses=courses,
-        videos=videos,
-    )
+    return RecommendationResponse(items=items)
