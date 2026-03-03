@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 import asyncio
 import uuid
 from datetime import datetime
@@ -132,3 +132,58 @@ async def get_recommendations(
     ]
 
     return RecommendationResponse(items=items)
+
+
+@router.patch("/{recommendation_id}/complete", response_model=RecommendationItem)
+async def mark_recommendation_as_complete(
+    recommendation_id: str,
+    user_id: str = Depends(verify_access_token),
+    db: Prisma = Depends(get_db),
+) -> RecommendationItem:
+    rec = await db.recommendation.find_first(
+        where={"id": recommendation_id, "userId": user_id},
+    )
+    if not rec:
+        raise HTTPException(status_code=404, detail="Recommendation not found.")
+
+    updated = await db.recommendation.update(
+        where={"id": recommendation_id},
+        data={"isComplete": True},
+    )
+
+    try:
+        collection = get_collection("recommendations")
+        existing = collection.get(ids=[recommendation_id])
+        metadatas = existing.get("metadatas") or []
+        if metadatas:
+            metadata = {
+                **metadatas[0],
+                "isComplete": True,
+                "updatedAt": datetime.now().isoformat(),
+            }
+        else:
+            metadata = {
+                "id": recommendation_id,
+                "isComplete": True,
+                "updatedAt": datetime.now().isoformat(),
+                "userId": user_id,
+            }
+
+        collection.update(
+            ids=[recommendation_id],
+            metadatas=[metadata],
+        )
+    except Exception as exc:
+        print(
+            f"[recommendations] Failed to update Chroma for recommendation {recommendation_id}: {exc}"
+        )
+
+    return RecommendationItem(
+        id=updated.id,
+        description=updated.description,
+        isComplete=updated.isComplete,
+        link=updated.link,
+        title=updated.title,
+        type=updated.type,
+        createdAt=updated.createdAt,
+    )

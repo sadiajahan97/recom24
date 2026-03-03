@@ -31,6 +31,8 @@ type RecommendationsResponse = {
 
 type GroupedRecommendations = Record<string, RecommendationItem[]>;
 
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+
 export default function AlertsScreen() {
   const [data, setData] = useState<RecommendationsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,9 +48,6 @@ export default function AlertsScreen() {
           setLoading(false);
           return;
         }
-
-        const baseUrl =
-          process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
         const res = await fetch(`${baseUrl}/recommendations`, {
           headers: {
@@ -93,8 +92,7 @@ export default function AlertsScreen() {
       let label: string;
       if (diffDays === 0) label = "Today";
       else if (diffDays === 1) label = "Yesterday";
-      else if (diffDays >= 2 && diffDays <= 6)
-        label = `${diffDays} days ago`;
+      else if (diffDays >= 2 && diffDays <= 6) label = `${diffDays} days ago`;
       else
         label = day.toLocaleDateString(undefined, {
           month: "short",
@@ -117,14 +115,56 @@ export default function AlertsScreen() {
 
   const hasAny = data && data.items.length > 0;
 
+  const markAsComplete = async (itemId: string) => {
+    const token = localStorage.getItem("access_token");
+    if (!token || !data) return;
+    const previous = data;
+    setData((prev) =>
+      prev
+        ? {
+            items: prev.items.map((it) =>
+              it.id === itemId ? { ...it, isComplete: true } : it,
+            ),
+          }
+        : null,
+    );
+    setError(null);
+    try {
+      const res = await fetch(`${baseUrl}/recommendations/${itemId}/complete`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        setData(previous);
+        const body = await res.json().catch(() => ({}));
+        setError(body.detail || body.message || "Failed to mark as complete.");
+      }
+    } catch {
+      setData(previous);
+      setError("Something went wrong. Please try again.");
+    }
+  };
+
   const renderCard = (item: RecommendationItem) => {
     const type = item.type.toLowerCase();
     const isArticle = type === "article";
     const isCourse = type === "course";
     const isVideo = type === "video";
 
-    const Icon = isArticle ? FileText : isCourse ? GraduationCap : isVideo ? PlayCircle : CircleQuestionMark;
-    const typeLabel = isArticle ? "Article" : isCourse ? "Course" : isVideo ? "Video" : "Unknown";
+    const Icon = isArticle
+      ? FileText
+      : isCourse
+        ? GraduationCap
+        : isVideo
+          ? PlayCircle
+          : CircleQuestionMark;
+    const typeLabel = isArticle
+      ? "Article"
+      : isCourse
+        ? "Course"
+        : isVideo
+          ? "Video"
+          : "Unknown";
 
     const created = new Date(item.createdAt);
     const timeLabel = created.toLocaleTimeString(undefined, {
@@ -133,52 +173,63 @@ export default function AlertsScreen() {
     });
 
     return (
-      <a
-        key={item.id}
-        href={item.link}
-        target="_blank"
-        rel="noreferrer"
-        className="block px-4 py-2"
-      >
+      <div key={item.id} className="block px-4 py-2">
         <div className="flex items-start gap-4 rounded-xl bg-white dark:bg-[#1c2230] p-4 shadow-sm border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-[#202736] transition-colors">
-          <div className="flex-shrink-0 mt-1">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-              <Icon className="w-5 h-5" />
+          <a
+            href={item.link}
+            target="_blank"
+            rel="noreferrer"
+            className="flex flex-1 items-start gap-4 min-w-0"
+          >
+            <div className="flex-shrink-0 mt-1">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Icon className="w-5 h-5" />
+              </div>
             </div>
-          </div>
-          <div className="flex flex-1 flex-col gap-2">
-            <div className="flex flex-col gap-1">
-              <div className="flex justify-between items-start">
-                <p className="text-slate-900 dark:text-white text-base font-bold leading-tight">
-                  {item.title}
+            <div className="flex flex-1 flex-col gap-2 min-w-0">
+              <div className="flex flex-col gap-1">
+                <div className="flex justify-between items-start">
+                  <p className="text-slate-900 dark:text-white text-base font-bold leading-tight">
+                    {item.title}
+                  </p>
+                  <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap ml-2">
+                    {timeLabel}
+                  </span>
+                </div>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-normal leading-normal">
+                  {item.description}
                 </p>
-                <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap ml-2">
-                  {timeLabel}
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">
+                  {typeLabel}
                 </span>
               </div>
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-normal leading-normal">
-                {item.description}
-              </p>
             </div>
-            <div className="mt-2 flex items-center justify-between">
-              <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">
-                {typeLabel}
+          </a>
+          <div className="flex items-center pt-2 self-center flex-shrink-0">
+            {item.isComplete ? (
+              <span className="flex items-center gap-1.5 text-xs font-medium text-green-500">
+                <CheckCheck className="w-4 h-4" />
+                Completed
               </span>
-              {item.isComplete ? (
-                <span className="flex items-center gap-1.5 text-xs font-medium text-green-500 ml-auto">
-                  <CheckCheck className="w-4 h-4" />
-                  Completed
-                </span>
-              ) : (
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-primary ml-auto">
-                  <CheckCircle2 className="w-4 h-4" />
-                  Mark as Complete
-                </span>
-              )}
-            </div>
+            ) : (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  markAsComplete(item.id);
+                }}
+                className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                Mark as Complete
+              </button>
+            )}
           </div>
         </div>
-      </a>
+      </div>
     );
   };
 
