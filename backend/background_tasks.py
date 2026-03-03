@@ -3,12 +3,22 @@ import uuid
 from datetime import datetime
 from typing import List
 
+import requests
+
 from articles import generate_articles
 from courses import generate_courses
 from videos import generate_videos
 from chroma import get_collection
 from prisma import Prisma
 from pydantic import BaseModel
+
+
+def is_url_accessible(url: str) -> bool:
+    try:
+        response = requests.head(url, timeout=5)
+        return response.status_code < 400
+    except requests.RequestException:
+        return False
 
 
 async def process_recommendations(
@@ -24,6 +34,9 @@ async def process_recommendations(
         image = item_dict.get("image")
         link = item_dict.get("link", "")
         title = item_dict.get("title", "")
+
+        if not link or not await asyncio.to_thread(is_url_accessible, link):
+            continue
 
         await db.recommendation.create(
             data={
