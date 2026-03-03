@@ -11,9 +11,9 @@ class Video(BaseModel):
 class VideoList(BaseModel):
     videos: List[Video]
 
-def generate_videos_from_query(query: str) -> List[Video]:
+def generate_videos(profession: str) -> List[Video]:
     prompt = (
-        f"Research and find a list of exactly eight highly relevant and real-world videos (e.g. from YouTube) for the topic: {query}. "
+        f"Research and find a list of exactly eight highly relevant and real-world videos (e.g. from YouTube) for the given profession: {profession}. "
         "Return the result as a JSON object with a 'videos' key containing a list of objects. "
         "Each object must have exactly these fields: 'title', 'description', and 'link'. "
         "Ensure the output is ONLY valid JSON."

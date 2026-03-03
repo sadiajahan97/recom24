@@ -3,9 +3,9 @@ import uuid
 from datetime import datetime
 from typing import List
 
-from articles import generate_articles_from_query
-from courses import generate_courses_from_query
-from videos import generate_videos_from_query
+from articles import generate_articles
+from courses import generate_courses
+from videos import generate_videos
 from chroma import get_collection
 from prisma import Prisma
 from pydantic import BaseModel
@@ -60,11 +60,11 @@ async def process_recommendations(
 
 
 async def generate_and_store_recommendations_for_user(
-    user_id: str, query: str, db: Prisma
+    user_id: str, profession: str, db: Prisma
 ) -> None:
-    articles_task = asyncio.to_thread(generate_articles_from_query, query)
-    courses_task = asyncio.to_thread(generate_courses_from_query, query)
-    videos_task = asyncio.to_thread(generate_videos_from_query, query)
+    articles_task = asyncio.to_thread(generate_articles, profession)
+    courses_task = asyncio.to_thread(generate_courses, profession)
+    videos_task = asyncio.to_thread(generate_videos, profession)
 
     articles, courses, videos = await asyncio.gather(
         articles_task, courses_task, videos_task
@@ -78,12 +78,12 @@ async def generate_and_store_recommendations_for_user(
 
 
 async def schedule_recommendations_for_user(
-    user_id: str, db: Prisma, query: str = "python"
+    user_id: str, db: Prisma, profession: str
 ) -> None:
     while True:
         try:
-            await generate_and_store_recommendations_for_user(user_id, query, db)
+            await generate_and_store_recommendations_for_user(user_id, profession, db)
         except Exception as exc:
             print(f"[recommendations] Error while generating for user {user_id}: {exc}")
 
-        await asyncio.sleep(8 * 60 * 60)
+        await asyncio.sleep(24 * 60 * 60)

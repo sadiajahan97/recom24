@@ -23,9 +23,16 @@ def get_collection(
 ):
     client = get_chroma_client()
     ef = embedding_function if embedding_function is not None else get_embedding_function()
+
+    if metadata is not None:
+        return client.get_or_create_collection(
+            name=name,
+            metadata=metadata,
+            embedding_function=ef,
+        )
+
     return client.get_or_create_collection(
         name=name,
-        metadata=metadata or {},
         embedding_function=ef,
     )
 

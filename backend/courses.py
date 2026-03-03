@@ -12,9 +12,9 @@ class Course(BaseModel):
 class CourseList(BaseModel):
     courses: List[Course]
 
-def generate_courses_from_query(query: str) -> List[Course]:
+def generate_courses(profession: str) -> List[Course]:
     prompt = (
-        f"Research and find a list of exactly eight highly relevant and real-world courses (from platforms like Coursera, Udemy, edX, etc.) for the topic: {query}. "
+        f"Research and find a list of exactly eight highly relevant and real-world courses (from platforms like Coursera, Udemy, edX, etc.) for the given profession: {profession}. "
         "Return the result as a JSON object with a 'courses' key containing a list of objects. "
         "Each object must have exactly these fields: 'title', 'description', 'image' (a placeholder or suggested theme), and 'link'. "
         "Ensure the output is ONLY valid JSON."

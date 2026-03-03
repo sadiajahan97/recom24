@@ -12,9 +12,9 @@ class Article(BaseModel):
 class ArticleList(BaseModel):
     articles: List[Article]
 
-def generate_articles_from_query(query: str) -> List[Article]:
+def generate_articles(profession: str) -> List[Article]:
     prompt = (
-        f"Research and find a list of exactly eight highly relevant and real-world articles for the topic: {query}. "
+        f"Research and find a list of exactly eight highly relevant and real-world articles for the given profession: {profession}. "
         "Return the result as a JSON object with an 'articles' key containing a list of objects. "
         "Each object must have exactly these fields: 'title', 'description', 'image' (a placeholder or suggested theme), and 'link'. "
         "Ensure the output is ONLY valid JSON."

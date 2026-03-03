@@ -13,7 +13,7 @@ from prisma import Prisma
 from db import get_db
 from background_tasks import schedule_recommendations_for_user
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 JWT_SECRET = os.getenv("JWT_SECRET", "change-me-in-production")
 JWT_ALGORITHM = "HS256"
@@ -109,7 +109,7 @@ async def sign_up(body: SignUpRequest, db: Prisma = Depends(get_db)):
             "profession": body.profession,
         }
     )
-    asyncio.create_task(schedule_recommendations_for_user(user.id, db, query="python"))
+    asyncio.create_task(schedule_recommendations_for_user(user.id, db, body.profession))
     token = create_access_token(user.id)
     return AuthResponse(user=user_to_response(user), access_token=token)
 
