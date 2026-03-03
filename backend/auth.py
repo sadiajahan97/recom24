@@ -11,7 +11,7 @@ from pydantic import BaseModel, EmailStr
 from prisma import Prisma
 
 from db import get_db
-from recommendations import schedule_recommendations_for_user
+from background_tasks import schedule_recommendations_for_user
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
