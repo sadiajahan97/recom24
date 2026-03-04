@@ -6,17 +6,19 @@ import json
 class Article(BaseModel):
     title: str = Field(description="The title of the article")
     description: str = Field(description="A brief description of the article content")
-    image: str = Field(description="A placeholder or suggested image URL/theme for the article")
     link: str = Field(description="A link to the article")
+    profession: str = Field(description="The profession this article is relevant for")
 
 class ArticleList(BaseModel):
     articles: List[Article]
 
-def generate_articles(profession: str) -> List[Article]:
+def generate_articles() -> List[Article]:
     prompt = (
-        f"Research and find a list of exactly eight highly relevant and real-world articles for the given profession: {profession}. "
+        "Pick one random profession. "
+        "Research and find a list of exactly eight highly relevant and real-world articles for that profession. "
         "Return the result as a JSON object with an 'articles' key containing a list of objects. "
-        "Each object must have exactly these fields: 'title', 'description', 'image' (a placeholder or suggested theme), and 'link'. "
+        "Each object must have exactly these fields: 'title', 'description', 'link', and 'profession' "
+        "(where 'profession' is the profession the article is relevant for). "
         "Ensure the output is ONLY valid JSON."
     )
     

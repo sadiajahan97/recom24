@@ -232,7 +232,7 @@ export default function SignupStep1() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold h-14 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center transition-all active:scale-[0.98]"
+            className="w-full bg-primary hover:bg-primary/90 hover:cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold h-14 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center transition-all active:scale-[0.98]"
           >
             {loading ? "Creating account..." : "Next"}
           </button>

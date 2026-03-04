@@ -5,7 +5,6 @@ from typing import List
 from auth import verify_access_token
 from db import get_db
 from prisma import Prisma
-from chroma import get_collection
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/recommendations", tags=["recommendations"])
@@ -67,33 +66,6 @@ async def mark_recommendation_as_complete(
         where={"id": recommendation_id},
         data={"isComplete": True},
     )
-
-    try:
-        collection = get_collection("recommendations")
-        existing = collection.get(ids=[recommendation_id])
-        metadatas = existing.get("metadatas") or []
-        if metadatas:
-            metadata = {
-                **metadatas[0],
-                "isComplete": True,
-                "updatedAt": datetime.now().isoformat(),
-            }
-        else:
-            metadata = {
-                "id": recommendation_id,
-                "isComplete": True,
-                "updatedAt": datetime.now().isoformat(),
-                "userId": user_id,
-            }
-
-        collection.update(
-            ids=[recommendation_id],
-            metadatas=[metadata],
-        )
-    except Exception as exc:
-        print(
-            f"[recommendations] Failed to update Chroma for recommendation {recommendation_id}: {exc}"
-        )
 
     return RecommendationItem(
         id=updated.id,

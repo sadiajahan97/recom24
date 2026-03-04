@@ -23,7 +23,6 @@ model User {
 model Recommendation {
   id          String   @id @default(uuid())
   description String
-  image       String?
   isComplete  Boolean  @default(false)
   link        String
   title       String

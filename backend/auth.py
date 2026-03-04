@@ -11,7 +11,12 @@ from pydantic import BaseModel, EmailStr
 from prisma import Prisma
 
 from db import get_db
-from background_tasks import schedule_recommendations_for_user
+from background_tasks import schedule_user_recommendations
+from professions import (
+    generate_job_description,
+    query_profession_description,
+    store_profession_description,
+)
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
@@ -30,11 +35,6 @@ async def verify_access_token(
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         user_id: str = payload.get("sub")
-        if user_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token",
-            )
         return user_id
     except JWTError:
         raise HTTPException(
@@ -94,6 +94,16 @@ def user_to_response(user) -> UserResponse:
     )
 
 
+async def ensure_profession_description(profession: str) -> None:
+    try:
+        existing = query_profession_description(profession)
+        if existing is None:
+            desc = generate_job_description(profession)
+            store_profession_description(desc)
+    except Exception:
+        return
+
+
 @router.post("/sign-up", response_model=AuthResponse)
 async def sign_up(body: SignUpRequest, db: Prisma = Depends(get_db)):
     existing = await db.user.find_unique(where={"email": body.email})
@@ -109,7 +119,13 @@ async def sign_up(body: SignUpRequest, db: Prisma = Depends(get_db)):
             "profession": body.profession,
         }
     )
-    asyncio.create_task(schedule_recommendations_for_user(user.id, db, body.profession))
+
+    asyncio.create_task(ensure_profession_description(user.profession))
+
+    asyncio.create_task(
+        schedule_user_recommendations(user.id, user.profession, db)
+    )
+
     token = create_access_token(user.id)
     return AuthResponse(user=user_to_response(user), access_token=token)
 

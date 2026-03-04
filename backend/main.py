@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import asyncio
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -10,6 +11,7 @@ from prisma import Prisma
 from auth import router as auth_router
 from recommendations import router as recommendations_router
 from db import set_db
+from background_tasks import schedule_recommendations
 
 prisma = Prisma()
 
@@ -18,6 +20,7 @@ prisma = Prisma()
 async def lifespan(app: FastAPI):
     await prisma.connect()
     set_db(prisma)
+    asyncio.create_task(schedule_recommendations())
     yield
     await prisma.disconnect()
 
