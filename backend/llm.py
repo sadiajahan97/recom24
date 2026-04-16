@@ -6,10 +6,6 @@ load_dotenv()
 
 client = genai.Client()
 
-grounding_tool = types.Tool(
-    google_search=types.GoogleSearch()
-)
+grounding_tool = types.Tool(google_search=types.GoogleSearch())
 
-config = types.GenerateContentConfig(
-    tools=[grounding_tool]
-)
+config = types.GenerateContentConfig(tools=[grounding_tool])

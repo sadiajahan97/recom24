@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:recom24/core/router/app_router.dart';
 import 'package:recom24/core/theme/app_theme.dart';
+import 'package:recom24/features/auth/providers/auth_provider.dart';
 import 'package:recom24/shared/widgets/recom24_logo.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -27,7 +29,14 @@ class _SplashScreenState extends State<SplashScreen> {
       await Future.delayed(const Duration(milliseconds: 25));
       if (mounted) setState(() => _progress = i / 100.0);
     }
-    if (mounted) context.go(AppRoutes.login);
+    if (mounted) {
+      final authProvider = context.read<AuthProvider>();
+      if (authProvider.isAuthenticated) {
+        context.go(AppRoutes.home);
+      } else {
+        context.go(AppRoutes.login);
+      }
+    }
   }
 
   @override
@@ -66,6 +75,7 @@ class _SplashScreenState extends State<SplashScreen> {
               const SizedBox(height: 16),
               Text(
                 'Curated Precision.',
+                textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 32,
                   fontWeight: FontWeight.w800,

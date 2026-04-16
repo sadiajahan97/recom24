@@ -59,6 +59,7 @@ class UserResponse(BaseModel):
     id: str
     email: str
     name: str
+    profession: str
     created_at: datetime
 
     class Config:
@@ -90,6 +91,7 @@ def user_to_response(user) -> UserResponse:
         id=user.id,
         email=user.email,
         name=user.name,
+        profession=user.profession,
         created_at=user.createdAt,
     )
 

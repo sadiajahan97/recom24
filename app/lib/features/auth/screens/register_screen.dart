@@ -6,6 +6,9 @@ import 'package:recom24/core/router/app_router.dart';
 import 'package:recom24/core/theme/app_theme.dart';
 import 'package:recom24/shared/widgets/app_text_field.dart';
 import 'package:recom24/shared/widgets/primary_button.dart';
+import 'package:recom24/shared/widgets/recom24_logo.dart';
+import 'package:provider/provider.dart';
+import 'package:recom24/features/auth/providers/auth_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -19,6 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _professionController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
 
@@ -27,15 +31,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _professionController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void _onCreate() {
+  void _onCreate() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // API integration will be added later
-      context.go(AppRoutes.home);
+      try {
+        await context.read<AuthProvider>().signUp(
+              email: _emailController.text.trim(),
+              password: _passwordController.text.trim(),
+              name: _nameController.text.trim(),
+              profession: _professionController.text.trim(),
+            );
+        if (mounted) {
+          context.go(AppRoutes.home);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString())),
+          );
+        }
+      }
     }
   }
 
@@ -50,6 +70,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
             key: _formKey,
             child: Column(
               children: [
+                // Logo
+                const Recom24Logo(size: 110)
+                    .animate()
+                    .fadeIn(duration: 600.ms)
+                    .slideY(begin: -0.2),
+                const SizedBox(height: 40),
                 AppTextField(
                   label: 'Name',
                   controller: _nameController,
@@ -71,6 +97,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   keyboardType: TextInputType.phone,
                 ).animate().fadeIn(delay: 200.ms, duration: 500.ms),
                 const SizedBox(height: 14),
+                AppTextField(
+                  label: 'Profession',
+                  controller: _professionController,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Required' : null,
+                ).animate().fadeIn(delay: 225.ms, duration: 500.ms),
+                const SizedBox(height: 14),
                 PasswordTextField(
                   label: 'Password',
                   controller: _passwordController,
@@ -89,6 +122,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 PrimaryButton(
                   label: 'Create Account',
                   trailingIcon: Icons.arrow_forward,
+                  isLoading: context.watch<AuthProvider>().isLoading,
                   onPressed: _onCreate,
                 ).animate().fadeIn(delay: 350.ms, duration: 500.ms),
                 const SizedBox(height: 24),

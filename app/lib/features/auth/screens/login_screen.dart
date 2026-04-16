@@ -7,6 +7,8 @@ import 'package:recom24/core/theme/app_theme.dart';
 import 'package:recom24/shared/widgets/app_text_field.dart';
 import 'package:recom24/shared/widgets/primary_button.dart';
 import 'package:recom24/shared/widgets/recom24_logo.dart';
+import 'package:provider/provider.dart';
+import 'package:recom24/features/auth/providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,20 +19,33 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  void _onLogin() {
+  void _onLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // API integration will be added later
-      context.go(AppRoutes.home);
+      try {
+        await context.read<AuthProvider>().signIn(
+              email: _emailController.text.trim(),
+              password: _passwordController.text.trim(),
+            );
+        if (mounted) {
+          context.go(AppRoutes.home);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString())),
+          );
+        }
+      }
     }
   }
 
@@ -51,10 +66,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     .fadeIn(duration: 600.ms)
                     .slideY(begin: -0.2),
                 const SizedBox(height: 40),
-                // Name field
+                // Email field
                 AppTextField(
-                  label: 'Name',
-                  controller: _nameController,
+                  label: 'Email',
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
                   validator: (v) =>
                       v == null || v.isEmpty ? 'Required' : null,
                 ).animate().fadeIn(delay: 200.ms, duration: 500.ms),
@@ -87,6 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 PrimaryButton(
                   label: 'Login',
                   trailingIcon: Icons.arrow_forward,
+                  isLoading: context.watch<AuthProvider>().isLoading,
                   onPressed: _onLogin,
                 ).animate().fadeIn(delay: 450.ms, duration: 500.ms),
                 const SizedBox(height: 28),

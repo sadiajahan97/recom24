@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:recom24/core/router/app_router.dart';
 import 'package:recom24/core/theme/app_theme.dart';
+import 'package:recom24/features/auth/providers/auth_provider.dart';
 
 void main() {
-  runApp(const Recom24App());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: const Recom24App(),
+    ),
+  );
 }
 
 class Recom24App extends StatelessWidget {

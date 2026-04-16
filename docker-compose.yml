@@ -1,0 +1,24 @@
+services:
+  database:
+    image: postgres:17
+    restart: always
+    environment:
+      POSTGRES_USER: sadia-iffat-jahan
+      POSTGRES_PASSWORD: sadia-iffat-jahan
+      POSTGRES_DB: recom24
+    ports:
+      - "5435:5432"
+    volumes:
+      - database:/var/lib/postgresql/data
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8004:8004"
+    depends_on:
+      - database
+volumes:
+  database:
