@@ -3,8 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:recom24/core/router/app_router.dart';
 import 'package:recom24/core/theme/app_theme.dart';
 import 'package:recom24/features/auth/providers/auth_provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   runApp(
     MultiProvider(
       providers: [
